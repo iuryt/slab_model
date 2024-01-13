@@ -1,13 +1,11 @@
 import numpy as np
 import xarray as xr
 from scipy import signal
-import gsw
-
 
 def slab_model(time, wind_stress, H, latitude, 
-               Zi0=0, rho0=1025, ni_band=[0.8, 1.2], 
-               drag=0.15, wind_work_method="Majumder et al (2015)",
-               numerical_method=1
+               Zi0 = 0, rho0 = 1025, ni_band = [0.8, 1.2], 
+               drag = 0.15, wind_work_method = "Majumder et al (2015)",
+               numerical_method = 1
               ):
     """
     Compute mixed-layer ocean currents using a slab model.
@@ -94,7 +92,7 @@ def slab_model(time, wind_stress, H, latitude,
     Zif[valid_Zi] = signal.lfilter(b, a0, Zif[valid_Zi][::-1])[::-1]
 
     ones = xr.DataArray(
-        np.ones_like(time), dims=["time"],
+        np.ones_like(time), dims = ["time"],
         coords=dict(time=("time", time))
     )
 
@@ -102,22 +100,22 @@ def slab_model(time, wind_stress, H, latitude,
         wind_work = ((Zif.conj() * Twf * rho0).real)
     elif wind_work_method == "Plueddemann and Farrar (2006)":
         ekman_currents_dt = xr.DataArray(
-            Tw / H, dims=["time"], coords={"time": time}
+            Tw / H, dims = ["time"], coords={"time": time}
         ).differentiate("time").values
         wind_work = (-rho0 * H * ((Zif.conj() / (1j * f)) * ekman_currents_dt).real)
     else:
         raise ValueError("Invalid wind work method.")
 
     output = xr.Dataset(dict(
-        Zi=ones * Zi,
-        Tw=ones * Tw,
-        Zif=ones * Zif,
-        Twf=ones * Twf,
-        H=ones * H,
-        wind_work=ones * wind_work,
-        near_inertial_filter=bfilter,
+        Zi = ones * Zi,
+        Tw = ones * Tw,
+        Zif = ones * Zif,
+        Twf = ones * Twf,
+        H = ones * H,
+        wind_work = ones * wind_work,
+        near_inertial_filter = bfilter,
     ))
 
-    output.attrs = dict(ip=ip, drag=drag, f=f, latitude=latitude, dt=dt, ni_band=ni_band)
+    output.attrs = dict(ip = ip, drag = drag, f = f, latitude = latitude, dt = dt, ni_band = ni_band)
 
     return output
